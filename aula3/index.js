@@ -1,4 +1,3 @@
 const chalk = require("chalk")
 
-console.log(chalk.bgGreen.black("o professor e desumilde"))
-
+console.log(chalk.bgGreen.black("Node SW 2B2"))
