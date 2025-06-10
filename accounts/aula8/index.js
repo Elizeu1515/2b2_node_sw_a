@@ -27,7 +27,7 @@ function operation() {
         } else if (action === 'Consultar saldo') {
             getAccountBalance()
         } else if (action === 'Sacar') {
-             withdraw()
+            withdraw()
         } else if (action === 'Sair') {
             console.log('Saindo do sistema...')
             process.exit()
@@ -166,24 +166,25 @@ function getAccountBalance() {
 function withdraw(){
     inquirer
     .prompt([
-    {
-        name: 'accountName',
-        message: 'qual conta deseja sacar?',
-    },
-    ]).then((answer) => {
-        const accountname = answer = ['account name']
-
-        if(checkAccount(accountname)){ 
-        return withdraw()
-    }
-    inquirer
-    .prompt([
         {
-            name:'amount',
-            message: 'qual o valor da retirada?'
+            name:'accountName',
+            message: 'Qual conta deseja sacar?',
+        },
+    ]).then((answer) => {
+        const accountName = answer['accountName']
+
+        if(!checkAccount(accountName)){
+            return withdraw()
         }
-    ])
-    }).then((answer) =>  {
+
+        inquirer
+        .prompt([
+            {
+                name:'amount',
+                message: 'Qual o valor da retirada?'
+            }
+        ])
+    }).then((answer) => {
         const amount = answer['amount']
 
         removeAmount(accountName, amount)
@@ -192,31 +193,32 @@ function withdraw(){
 
 function removeAmount(accountName, amount){
     const accountData = getAccount(accountName)
+
     if(!amount){
         console.log(
-            chalk.bgRed.black('ocorreu um erro tente novamente mais tarde')
+            chalk.bgRed.black('Ocorreu um erro, tente novamente mais tarde.')
         )
         return withdraw()
     }
 
-    if(accountData.balance < amount){ 
-    console.log( 
-        chalk.bdRed.black('valor indisponivel')
-   )
-   return withdraw()
+    if(accountData.balance < amount){
+        console.log(
+            chalk.bdRed.black('Valor Indisponivel')
+        )
+        return withdraw()
+    }
+
+    accountData.balance = parseFloat(accountData.balance) - parseFloat(amount)
+
+    fs.writeFileSync(
+        `accounts/${accountName}.json`,
+        JSON.stringify(accountData),
+        function (err){
+            console.log(err)
+        }
+    )
+
+    console.log(
+        chalk.green(`Foi sacado: R$ ${amount} da conta. Saldo: R$ ${accountData.balance}.`)
+    )
 }
-
-accountData.balance = parseFloat(accountData.balance) - persefloat(amount)
-
-fs.writeFileSync(
-`accounts/${accountName}.json`,
-JSON.stringify(accountData),
-function (err){
-    console.log(err)
- }
-
-)
-console.log(
-    chalk.green(`foi sacado: R$ ${amount}da conta. saldo: R$ ${accountData.balance}.`)
-)
- }

@@ -2,9 +2,9 @@ const chalk = require('chalk')
 const inquirer = require('inquirer')
 const fs = require('fs')
 const path = require('path')
- 
+
 const dirPath = path.join(__dirname, '..', 'accounts')
- 
+
 module.exports = {
     deposit() {
         inquirer.prompt([
@@ -16,6 +16,7 @@ module.exports = {
             const accountName = answer['accountName']
             if (!this.checkAccount(accountName)) {
                 setTimeout(function () {
+                    console.log(dirPath)
                     console.log(chalk.bgRed.black("Esta conta não existe!"))
                     return this.deposit()
                 }, 3000)
@@ -41,14 +42,14 @@ module.exports = {
     },
     addAmount(accountName, amount) {
         const accountData = this.getAccount(accountName)
-   
+    
         if (!amount) {
             console.log(chalk.bgRed.black('Ocorreu um erro! tente novamente mais tarde.'))
             return deposit
         }
-   
+    
         accountData.balance = parseFloat(amount) + parseFloat(accountData.balance)
-   
+    
         fs.writeFileSync(
             `${dirPath}/${accountName}.json`,
             JSON.stringify(accountData),
@@ -65,7 +66,7 @@ module.exports = {
             encoding: 'utf-8',
             flag: 'r',
         })
-   
+    
         return JSON.parse(accountJson)
     }
 }

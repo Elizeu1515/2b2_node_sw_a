@@ -1,5 +1,6 @@
 const inquirer = require('inquirer')
-const accountModule = require('./modules/moduleAcounts')
+const create = require('./modules/create')
+const manager = require('./modules/manager')
 const chalk = require('chalk')
 
 const fs = require('fs')
@@ -22,13 +23,13 @@ function operation() {
         const action = answer['action']
 
         if (action === 'Criar conta') {
-            createAccount()
+            create.createAccount()
         } else if (action === 'Depositar') {
-            deposit()
+            manager.deposit()
         } else if (action === 'Consultar saldo') {
             getAccountBalance()
         } else if (action === 'Sacar') {
-             withdraw()
+            withdraw()
         } else if (action === 'Sair') {
             console.log('Saindo do sistema...')
             process.exit()
@@ -38,68 +39,6 @@ function operation() {
     })
 }
 
-function deposit() {
-    inquirer.prompt([
-        {
-            name: 'accountName',
-            message: 'Informe o nome da conta a depositar: '
-        }
-    ]).then((answer) => {
-        const accountName = answer['accountName']
-        if (!checkAccount(accountName)) {
-            setTimeout(function () {
-                console.log(chalk.bgRed.black("Esta conta não existe!"))
-                return deposit()
-            }, 3000)
-        } else {
-            inquirer.prompt([
-                {
-                    name: 'amount',
-                    message: 'Quanto voce desja depositar?'
-                }
-            ]).then((answer) => {
-                const amount = answer['amount']
-                addAmount(accountName, amount)
-                operation()
-            })
-        }
-    })
-}
-function addAmount(accountName, amount) {
-    const accountData = getAccount(accountName)
-
-    if (!amount) {
-        console.log(chalk.bgRed.black('Ocorreu um erro! tente novamente mais tarde.'))
-        return deposit
-    }
-
-    accountData.balance = parseFloat(amount) + parseFloat(accountData.balance)
-
-    fs.writeFileSync(
-        `accounts/${accountName}.json`,
-        JSON.stringify(accountData),
-        function (err) {
-            console.log(err)
-        },
-    )
-    setTimeout(function () {
-        console.log(chalk.green('Valor depositado!'))
-    }, 2000)
-}
-function getAccount(accountName) {
-    const accountJson = fs.readFileSync(`accounts/${accountName}.json`, {
-        encoding: 'utf-8',
-        flag: 'r',
-    })
-
-    return JSON.parse(accountJson)
-}
-function checkAccount(accountName) {
-    if (!fs.existsSync(`accounts/${accountName}.json`)) {
-        return false
-    }
-    return true
-}
 function getAccountBalance() {
     inquirer
         .prompt([
@@ -123,60 +62,61 @@ function getAccountBalance() {
             operation()
         })
 }
-function withdraw(){
+function withdraw() {
     inquirer
-    .prompt([
-    {
-        name: 'accountName',
-        message: 'qual conta deseja sacar?',
-    },
-    ]).then((answer) => {
-        const accountname = answer = ['account name']
+        .prompt([
+            {
+                name: 'accountName',
+                message: 'Qual conta deseja sacar?',
+            },
+        ]).then((answer) => {
+            const accountName = answer['accountName']
 
-        if(checkAccount(accountname)){ 
-        return withdraw()
-    }
-    inquirer
-    .prompt([
-        {
-            name:'amount',
-            message: 'qual o valor da retirada?'
-        }
-    ])
-    }).then((answer) =>  {
-        const amount = answer['amount']
+            if (!checkAccount(accountName)) {
+                return withdraw()
+            }
 
-        removeAmount(accountName, amount)
-    })
+            inquirer
+                .prompt([
+                    {
+                        name: 'amount',
+                        message: 'Qual o valor da retirada?'
+                    }
+                ])
+        }).then((answer) => {
+            const amount = answer['amount']
+
+            removeAmount(accountName, amount)
+        })
 }
-
-function removeAmount(accountName, amount){
+function removeAmount(accountName, amount) {
     const accountData = getAccount(accountName)
-    if(!amount){
+
+    if (!amount) {
         console.log(
-            chalk.bgRed.black('ocorreu um erro tente novamente mais tarde')
+            chalk.bgRed.black('Ocorreu um erro, tente novamente mais tarde.')
         )
         return withdraw()
     }
 
-    if(accountData.balance < amount){ 
-    console.log( 
-        chalk.bdRed.black('valor indisponivel')
-   )
-   return withdraw()
+    if (accountData.balance < amount) {
+        console.log(
+            chalk.bdRed.black('Valor Indisponivel')
+        )
+        return withdraw()
+    }
+
+    accountData.balance = parseFloat(accountData.balance) - parseFloat(amount)
+
+    fs.writeFileSync(
+        `accounts/${accountName}.json`,
+        JSON.stringify(accountData),
+        function (err) {
+            console.log(err)
+        }
+    )
+
+    console.log(
+        chalk.green(`Foi sacado: R$ ${amount} da conta. Saldo: R$ ${accountData.balance}.`)
+    )
 }
-
-accountData.balance = parseFloat(accountData.balance) - persefloat(amount)
-
-fs.writeFileSync(
-`accounts/${accountName}.json`,
-JSON.stringify(accountData),
-function (err){
-    console.log(err)
- }
-
-)
-console.log(
-    chalk.green(`foi sacado: R$ ${amount}da conta. saldo: R$ ${accountData.balance}.`)
-)
- }
